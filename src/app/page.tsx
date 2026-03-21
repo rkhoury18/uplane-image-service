@@ -14,6 +14,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { supabaseBrowser } from '@/lib/supabase-browser';
+import { useRouter } from 'next/navigation';
+
+const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 
 type ImageRecord = {
   id: string;
@@ -25,22 +29,42 @@ type ImageRecord = {
   created_at: string;
 };
 
+async function getAuthHeader() {
+  const { data: { session } } = await supabaseBrowser.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Please log in first');
+  return { Authorization: `Bearer ${token}` };
+}
+
 export default function HomePage() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [processingMessage, setProcessingMessage] = useState('');
-  const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
   const [deleteTarget, setDeleteTarget] = useState<ImageRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
+
+  useEffect(() => {
+    supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+      setUserEmail(session.user.email ?? '');
+    });
+  }, [router]);
 
   const fetchImages = useCallback(async (showLoader = true) => {
     try {
       if (showLoader) setLoadingList(true);
-      const res = await fetch('/api/images', { cache: 'no-store' });
+      const headers = await getAuthHeader();
+      const res = await fetch('/api/images', { cache: 'no-store', headers });
       const payload = await res.json().catch(() => ({}));
+      
 
       if (!res.ok || !payload?.success) {
         throw new Error(payload?.error || 'Failed to load images');
@@ -91,8 +115,10 @@ export default function HomePage() {
       setIsUploading(true);
       setProcessingMessage('Removing background and flipping image...');
 
+      const headers = await getAuthHeader();
       const res = await fetch('/api/images', {
         method: 'POST',
+        headers,
         body: formData,
       });
 
@@ -122,7 +148,8 @@ export default function HomePage() {
   async function handleDelete(id: string) {
     try {
       setIsDeleting(true);
-      const res = await fetch(`/api/images/${id}`, { method: 'DELETE' });
+      const headers = await getAuthHeader();
+      const res = await fetch(`/api/images/${id}`, { method: 'DELETE', headers });
       const payload = await res.json().catch(() => ({}));
 
       if (!res.ok || !payload?.success) {
@@ -188,17 +215,30 @@ export default function HomePage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
               <Upload className="size-5 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-semibold text-slate-900">Image Transformation Service</h1>
-              <p className="text-sm text-slate-500">
-                Remove backgrounds, flip horizontally, and get hosted URLs
-              </p>
+              <p className="text-sm text-slate-500">Remove backgrounds, flip horizontally, and get hosted URLs</p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {userEmail && (
+              <span className="text-sm text-slate-600 max-w-[220px] truncate">{userEmail}</span>
+            )}
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await supabaseBrowser.auth.signOut();
+                router.push('/login');
+              }}
+            >
+              Logout
+            </Button>
           </div>
         </div>
       </header>
@@ -225,6 +265,17 @@ export default function HomePage() {
                 : 'border-slate-300 bg-slate-50 hover:border-slate-400'
             }`}
           >
+          <input
+              id="image-input"
+              type="file"
+              className="hidden"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              disabled={isUploading}
+              onChange={(e) => {
+                const selected = e.target.files?.[0] ?? null;
+                validateAndSetFile(selected, e.currentTarget);
+              }}
+          />
               {file ? (
                 <div className="space-y-3">
                   <p className="font-medium text-slate-900 truncate">{file.name}</p>
