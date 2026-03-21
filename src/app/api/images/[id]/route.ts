@@ -1,33 +1,9 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { deleteProcessedImage } from '@/lib/storage';
+import { getAuthenticatedUser } from '@/lib/auth';
 
 export const runtime = 'nodejs';
-
-async function getAuthenticatedUser(request: Request) {
-    const authHeader = request.headers.get('authorization');
-  
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { user: null, error: 'Unauthorized' };
-    }
-  
-    const token = authHeader.replace('Bearer ', '').trim();
-  
-    if (!token) {
-      return { user: null, error: 'Unauthorized' };
-    }
-  
-    const {
-      data: { user },
-      error,
-    } = await supabaseAdmin.auth.getUser(token);
-  
-    if (error || !user) {
-      return { user: null, error: 'Unauthorized' };
-    }
-  
-    return { user, error: null };
-}
 
 function ok<T>(data: T, status = 200) {
   return NextResponse.json({ success: true, data }, { status });

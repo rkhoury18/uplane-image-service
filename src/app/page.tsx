@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Trash2, Upload } from 'lucide-react';
+import { Loader2, Trash2, Upload, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,18 +16,9 @@ import {
 } from '@/components/ui/dialog';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useRouter } from 'next/navigation';
+import type { ImageRecord } from '@/types/image';
 
 const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-
-type ImageRecord = {
-  id: string;
-  original_filename: string;
-  status: 'processing' | 'ready' | 'failed';
-  processed_url: string | null;
-  storage_path: string | null;
-  error_message: string | null;
-  created_at: string;
-};
 
 async function getAuthHeader() {
   const { data: { session } } = await supabaseBrowser.auth.getSession();
@@ -45,6 +36,7 @@ export default function HomePage() {
   const [processingMessage, setProcessingMessage] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<ImageRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
 
@@ -143,6 +135,13 @@ export default function HomePage() {
       setIsUploading(false);
       setProcessingMessage('');
     }
+  }
+
+  async function handleCopyUrl(id: string, url: string) {
+    await navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    toast.success('URL copied to clipboard');
+    setTimeout(() => setCopiedId(null), 2000);
   }
 
   async function handleDelete(id: string) {
@@ -382,16 +381,30 @@ export default function HomePage() {
   
                     <div className="flex gap-2">
                       {img.status === 'ready' && img.processed_url && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          asChild
-                        >
-                          <a href={img.processed_url} target="_blank" rel="noreferrer">
-                            View image
-                          </a>
-                        </Button>
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            asChild
+                          >
+                            <a href={img.processed_url} target="_blank" rel="noreferrer">
+                              View image
+                            </a>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCopyUrl(img.id, img.processed_url!)}
+                            title="Copy image URL"
+                          >
+                            {copiedId === img.id ? (
+                              <Check className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </>
                       )}
   
                       <Button
