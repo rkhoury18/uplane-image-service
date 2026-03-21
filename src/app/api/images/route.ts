@@ -1,22 +1,14 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { processImage } from '@/lib/image-pipeline';
 import { uploadProcessedImage } from '@/lib/storage';
 import { getAuthenticatedUser } from '@/lib/auth';
+import { ok, fail } from '@/lib/api';
 import type { ImageRecord } from '@/types/image';
 
 export const runtime = 'nodejs';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-
-function ok<T>(data: T, status = 200) {
-  return NextResponse.json({ success: true, data }, { status });
-}
-
-function fail(error: string, status = 500) {
-  return NextResponse.json({ success: false, error }, { status });
-}
 
 export async function GET(request: Request) {
     const { user, error: authError } = await getAuthenticatedUser(request);

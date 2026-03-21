@@ -80,14 +80,14 @@ export default function SignupPage() {
             </div>
 
             <p className="text-lg text-slate-600 max-w-md">
-              Create an account to save, manage, and revisit the images you process.
+              Create an account to save, manage, and revisit the images you process. Share them via URL or delete them whenever you like.
             </p>
 
             <ul className="space-y-4">
               {[
-                ['AI-Powered Background Removal', 'Remove backgrounds from any image with precision and speed'],
-                ['Instant Transformation', 'Horizontal flipping and processing in just a few clicks'],
-                ['Shareable URLs', 'Get unique URLs for every processed image, ready to share anywhere'],
+                ['Background removal', 'Upload any image and get it back with the background stripped out'],
+                ['Horizontal flip', 'Every processed image is automatically mirrored left to right'],
+                ['Hosted URLs', 'Each result gets its own URL you can copy and drop anywhere'],
               ].map(([title, desc]) => (
                 <li key={title} className="flex gap-3 items-start">
                   <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">
@@ -207,9 +207,6 @@ export default function SignupPage() {
                   </CardContent>
                 </Card>
 
-                <p className="mt-4 text-center text-xs text-slate-500">
-                  By creating an account, you agree to our Terms of Service and Privacy Policy
-                </p>
               </>
             )}
           </section>

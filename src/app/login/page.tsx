@@ -131,15 +131,15 @@ export default function LoginPage() {
             </div>
 
             <p className="text-lg text-slate-600 max-w-md">
-              Professional background removal and image flipping powered by AI.
-              Get instant, shareable URLs for all your processed images.
+              Upload your image and we'll remove the background and flip it horizontally.
+              Your images are saved to your account so you can come back to them anytime — share via URL or delete when you're done.
             </p>
 
             <ul className="space-y-4">
               {[
-                ['AI-Powered Background Removal', 'Remove backgrounds from any image with precision and speed'],
-                ['Instant Transformation', 'Horizontal flipping and processing in just a few clicks'],
-                ['Shareable URLs', 'Get unique URLs for every processed image, ready to share anywhere'],
+                ['Background removal', 'Upload any image and get it back with the background stripped out'],
+                ['Horizontal flip', 'Every processed image is automatically mirrored left to right'],
+                ['Hosted URLs', 'Each result gets its own URL you can copy and drop anywhere'],
               ].map(([title, desc]) => (
                 <li key={title} className="flex gap-3 items-start">
                   <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">
@@ -324,9 +324,6 @@ export default function LoginPage() {
               </CardContent>
             </Card>
 
-            <p className="mt-4 text-center text-xs text-slate-500">
-              By signing in, you agree to our Terms of Service and Privacy Policy
-            </p>
           </section>
         </div>
       </div>

@@ -54,7 +54,6 @@ export default function HomePage() {
       const headers = await getAuthHeader();
       const res = await fetch('/api/images', { cache: 'no-store', headers });
       const payload = await res.json().catch(() => ({}));
-      
 
       if (!res.ok || !payload?.success) {
         throw new Error(payload?.error || 'Failed to load images');
@@ -377,7 +376,7 @@ export default function HomePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {images.map((img) => (
-                <div key={img.id} className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+                <div key={img.id} className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                   {/* Thumbnail */}
                   <div
                     className="aspect-square overflow-hidden relative"
@@ -397,13 +396,6 @@ export default function HomePage() {
                         alt={`Processed ${img.original_filename}`}
                         className="w-full h-full object-contain p-4"
                       />
-                    ) : img.status === 'failed' ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-red-50">
-                        <p className="text-sm font-medium text-red-600">Processing failed</p>
-                        {img.error_message && (
-                          <p className="text-xs text-red-500 px-6 text-center">{img.error_message}</p>
-                        )}
-                      </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-slate-50/80">
                         <Loader2 className="size-8 text-blue-500 animate-spin" />
@@ -419,8 +411,6 @@ export default function HomePage() {
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${
                         img.status === 'ready'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : img.status === 'failed'
-                          ? 'bg-red-50 text-red-700 border-red-200'
                           : 'bg-amber-50 text-amber-700 border-amber-200'
                       }`}>
                         {img.status}
