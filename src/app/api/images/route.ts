@@ -106,14 +106,11 @@ export async function POST(request: Request) {
 
         await supabaseAdmin
             .from('images')
-            .update({
-            status: 'failed',
-            error_message: message,
-            })
-            .eq('user_id', user.id)
-            .eq('id', createdRow.id);
+            .delete()
+            .eq('id', createdRow.id)
+            .eq('user_id', user.id);
 
-        return fail('Image processing failed', 500);
+        return fail(message, 422);
         }
     } catch (err) {
         console.error('Invalid request in POST /api/images:', err);

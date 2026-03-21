@@ -22,8 +22,18 @@ export async function removeBackground(inputBuffer: Buffer): Promise<Buffer> {
     });
   
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`remove.bg failed: ${response.status} ${errorText}`);
+      if (response.status === 402) {
+        throw new Error('Background removal is temporarily unavailable — the free remove.bg credits have been used up.');
+      }
+      let message = 'Could not remove the background from this image.';
+      try {
+        const body = await response.json();
+        const title = body?.errors?.[0]?.title as string | undefined;
+        if (title) message = title;
+      } catch {
+        // ignore parse errors, use default message
+      }
+      throw new Error(message);
     }
   
     const arrayBuffer = await response.arrayBuffer();
