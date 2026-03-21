@@ -1,10 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Trash2, Upload, Copy, Check } from 'lucide-react';
+import { Loader2, Trash2, Upload, Copy, Check, ExternalLink, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -210,6 +209,14 @@ export default function HomePage() {
     validateAndSetFile(dropped);
   }
 
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       {/* Header */}
@@ -217,7 +224,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
-              <Upload className="size-5 text-white" />
+              <Sparkles className="size-5 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-semibold text-slate-900">Image Transformation Service</h1>
@@ -227,210 +234,259 @@ export default function HomePage() {
 
           <div className="flex items-center gap-3">
             {userEmail && (
-              <span className="text-sm text-slate-600 max-w-[220px] truncate">{userEmail}</span>
+              <span className="hidden sm:block text-sm text-slate-500 max-w-[220px] truncate">{userEmail}</span>
             )}
             <Button
               variant="outline"
+              size="sm"
               onClick={async () => {
                 await supabaseBrowser.auth.signOut();
                 router.push('/login');
               }}
             >
-              Logout
+              Log out
             </Button>
           </div>
         </div>
       </header>
-  
+
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
         {/* Upload Section */}
-        <Card className="p-8 bg-white shadow-lg">
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2">Upload image</h2>
-            <p className="text-slate-600">
-              Upload an image to remove background and flip it horizontally
+        <Card className="bg-white shadow-lg overflow-hidden">
+          <div className="p-6 border-b border-slate-100">
+            <h2 className="text-lg font-semibold text-slate-900">Upload image</h2>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Supports PNG, JPG, JPEG, WEBP — max 10 MB
             </p>
           </div>
-  
-          <form onSubmit={handleUpload} className="space-y-4">
-          <div
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-all ${
-              dragActive
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-slate-300 bg-slate-50 hover:border-slate-400'
-            }`}
-          >
-          <input
-              id="image-input"
-              type="file"
-              className="hidden"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              disabled={isUploading}
-              onChange={(e) => {
-                const selected = e.target.files?.[0] ?? null;
-                validateAndSetFile(selected, e.currentTarget);
-              }}
-          />
-              {file ? (
-                <div className="space-y-3">
-                  <p className="font-medium text-slate-900 truncate">{file.name}</p>
-                  <p className="text-sm text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                  <div className="flex items-center justify-center gap-2">
-                    <Button type="submit" disabled={isUploading}>
-                      {isUploading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="mr-2 h-4 w-4" />
-                          Process image
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={isUploading}
-                      onClick={() => {
-                        setFile(null);
-                        const fileInput = document.getElementById('image-input') as HTMLInputElement | null;
-                        if (fileInput) fileInput.value = '';
-                      }}
-                    >
-                      Cancel
-                    </Button>
+
+          <div className="p-6">
+            <form onSubmit={handleUpload}>
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                className={`relative border-2 border-dashed rounded-xl transition-all ${
+                  dragActive
+                    ? 'border-blue-400 bg-blue-50'
+                    : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100/50'
+                }`}
+              >
+                <input
+                  id="image-input"
+                  type="file"
+                  className="hidden"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  disabled={isUploading}
+                  onChange={(e) => {
+                    const selected = e.target.files?.[0] ?? null;
+                    validateAndSetFile(selected, e.currentTarget);
+                  }}
+                />
+
+                {isUploading ? (
+                  <div className="py-14 flex flex-col items-center gap-3">
+                    <div className="flex size-14 items-center justify-center rounded-full bg-blue-100">
+                      <Loader2 className="size-7 text-blue-600 animate-spin" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-medium text-slate-900">Processing your image…</p>
+                      <p className="text-sm text-slate-500 mt-1">Removing background and flipping — this may take a moment</p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div>
-                  <Upload className="mx-auto size-10 text-slate-400 mb-3" />
-                  <p className="text-base font-medium text-slate-900">
-                    Drop your image here, or browse files
-                  </p>
-                  <p className="text-sm text-slate-500 mt-1">PNG, JPG, JPEG, WEBP (max 10MB)</p>
-                  <label
-                    htmlFor="image-input"
-                    className="inline-block mt-4 cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-700"
-                  >
-                    Browse files
+                ) : file ? (
+                  <div className="py-10 flex flex-col items-center gap-4">
+                    <div className="flex size-12 items-center justify-center rounded-full bg-emerald-100">
+                      <Check className="size-6 text-emerald-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-medium text-slate-900">{file.name}</p>
+                      <p className="text-sm text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="submit"
+                        className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700"
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Process image
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setFile(null);
+                          const el = document.getElementById('image-input') as HTMLInputElement | null;
+                          if (el) el.value = '';
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <label htmlFor="image-input" className="py-14 flex flex-col items-center gap-3 cursor-pointer">
+                    <div className="flex size-14 items-center justify-center rounded-full bg-slate-200">
+                      <Upload className="size-6 text-slate-500" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-medium text-slate-900">
+                        Drop your image here, or <span className="text-blue-600">browse</span>
+                      </p>
+                      <p className="text-sm text-slate-500 mt-1">PNG, JPG, JPEG, WEBP up to 10 MB</p>
+                    </div>
                   </label>
-                </div>
-              )}
-            </div>
-  
-            {isUploading && (
-              <p className="text-sm text-muted-foreground">{processingMessage}</p>
-            )}
-          </form>
+                )}
+              </div>
+            </form>
+          </div>
         </Card>
-  
+
         {/* Processed Images */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Processed images</h2>
-  
+          <h2 className="text-lg font-semibold text-slate-900">Processed images</h2>
+
           {loadingList ? (
-            <p className="text-sm text-muted-foreground">Loading images...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-slate-100" />
+                  <div className="p-4 space-y-3">
+                    <div className="flex justify-between gap-4">
+                      <div className="h-4 bg-slate-200 rounded w-2/3" />
+                      <div className="h-4 bg-slate-200 rounded w-12" />
+                    </div>
+                    <div className="h-3 bg-slate-100 rounded w-1/3" />
+                    <div className="flex gap-2 pt-1">
+                      <div className="h-8 bg-slate-100 rounded flex-1" />
+                      <div className="h-8 w-8 bg-slate-100 rounded" />
+                      <div className="h-8 w-8 bg-slate-100 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : images.length === 0 ? (
-            <Card>
-              <CardContent className="py-10 text-center">
-                <p className="text-slate-600">No processed images yet.</p>
-                <p className="text-sm text-slate-500 mt-1">
-                  Upload an image above to create your first result.
-                </p>
-              </CardContent>
+            <Card className="bg-white shadow-sm">
+              <div className="py-16 flex flex-col items-center gap-3 text-center">
+                <div className="flex size-16 items-center justify-center rounded-full bg-slate-100">
+                  <Sparkles className="size-8 text-slate-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">No processed images yet</p>
+                  <p className="text-sm text-slate-500 mt-1">Upload an image above to get started</p>
+                </div>
+              </div>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {images.map((img) => (
-                <Card key={img.id} className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow">
-                  <div className="aspect-square bg-slate-100 flex items-center justify-center overflow-hidden">
+                <div key={img.id} className="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+                  {/* Thumbnail */}
+                  <div
+                    className="aspect-square overflow-hidden relative"
+                    style={{
+                      backgroundImage: `linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+                        linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+                        linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)`,
+                      backgroundSize: '20px 20px',
+                      backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                      backgroundColor: '#f9fafb',
+                    }}
+                  >
                     {img.status === 'ready' && img.processed_url ? (
                       <img
                         src={img.processed_url}
                         alt={`Processed ${img.original_filename}`}
-                        className="w-full h-full object-contain p-3"
+                        className="w-full h-full object-contain p-4"
                       />
+                    ) : img.status === 'failed' ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-red-50">
+                        <p className="text-sm font-medium text-red-600">Processing failed</p>
+                        {img.error_message && (
+                          <p className="text-xs text-red-500 px-6 text-center">{img.error_message}</p>
+                        )}
+                      </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground px-4 text-center">
-                        {img.status === 'failed' ? 'Processing failed' : 'Processing...'}
-                      </p>
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-slate-50/80">
+                        <Loader2 className="size-8 text-blue-500 animate-spin" />
+                        <p className="text-sm text-slate-500">Processing…</p>
+                      </div>
                     )}
                   </div>
-  
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-medium text-slate-900 truncate">{img.original_filename}</p>
-                      <span
-                        className={
-                          img.status === 'ready'
-                            ? 'text-green-600 text-xs font-medium'
-                            : img.status === 'failed'
-                            ? 'text-red-600 text-xs font-medium'
-                            : 'text-amber-600 text-xs font-medium'
-                        }
-                      >
+
+                  {/* Card body */}
+                  <div className="p-4 space-y-3 border-t border-slate-100">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium text-slate-900 truncate min-w-0">{img.original_filename}</p>
+                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${
+                        img.status === 'ready'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : img.status === 'failed'
+                          ? 'bg-red-50 text-red-700 border-red-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      }`}>
                         {img.status}
                       </span>
                     </div>
-  
-                    <div className="flex gap-2">
-                      {img.status === 'ready' && img.processed_url && (
+
+                    <p className="text-xs text-slate-400">{formatDate(img.created_at)}</p>
+
+                    <div className="flex gap-2 pt-1">
+                      {img.status === 'ready' && img.processed_url ? (
                         <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            asChild
-                          >
+                          <Button variant="outline" size="sm" className="flex-1 text-xs" asChild>
                             <a href={img.processed_url} target="_blank" rel="noreferrer">
-                              View image
+                              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                              View
                             </a>
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
+                            className="px-2.5"
                             onClick={() => handleCopyUrl(img.id, img.processed_url!)}
                             title="Copy image URL"
                           >
-                            {copiedId === img.id ? (
-                              <Check className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
+                            {copiedId === img.id
+                              ? <Check className="h-3.5 w-3.5 text-emerald-600" />
+                              : <Copy className="h-3.5 w-3.5" />
+                            }
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200"
+                            onClick={() => setDeleteTarget(img)}
+                            disabled={isDeleting && deleteTarget?.id === img.id}
+                            title="Delete image"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="px-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 ml-auto"
+                          onClick={() => setDeleteTarget(img)}
+                          disabled={isDeleting && deleteTarget?.id === img.id}
+                          title="Delete image"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       )}
-  
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeleteTarget(img)}
-                        disabled={isDeleting && deleteTarget?.id === img.id}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </Button>
                     </div>
-  
-                    {img.status === 'failed' && (
-                      <p className="text-xs text-red-600">
-                        {img.error_message || 'Unknown processing error'}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </section>
       </div>
-  
+
       {/* Delete Dialog */}
       <Dialog
         open={!!deleteTarget}
@@ -442,25 +498,25 @@ export default function HomePage() {
           <DialogHeader>
             <DialogTitle>Delete image?</DialogTitle>
             <DialogDescription>
-              This action will permanently delete the processed image and cannot be undone.
+              This will permanently remove the processed image and its hosted URL. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
-  
-          <div className="rounded-md border p-3 text-sm">
-            <p className="font-medium truncate">{deleteTarget?.original_filename}</p>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+            <p className="font-medium text-slate-900 truncate">{deleteTarget?.original_filename}</p>
             {deleteTarget?.processed_url && (
               <a
                 href={deleteTarget.processed_url}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-1 inline-block text-xs font-medium text-blue-600 hover:underline"
+                className="mt-1 inline-block text-xs text-blue-600 hover:underline"
               >
-                Image link
+                View image ↗
               </a>
             )}
           </div>
-  
-          <DialogFooter className="mx-0 mb-0 border-0 bg-transparent p-0 pt-2 sm:justify-end">
+
+          <DialogFooter className="gap-2 sm:justify-end">
             <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
               Cancel
             </Button>
@@ -469,7 +525,14 @@ export default function HomePage() {
               onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete permanently'}
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting…
+                </>
+              ) : (
+                'Delete permanently'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
