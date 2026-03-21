@@ -194,9 +194,6 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground mt-2">{processingMessage}</p>
             )}
           </form>
-          {!file && (
-            <p className="text-xs text-muted-foreground">No file selected yet.</p>
-          )}
         </CardContent>
       </Card>
 
