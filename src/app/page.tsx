@@ -32,7 +32,6 @@ export default function HomePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [loadingList, setLoadingList] = useState(true);
-  const [processingMessage, setProcessingMessage] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<ImageRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -98,13 +97,11 @@ export default function HomePage() {
       return;
     }
 
-    setProcessingMessage('Uploading image...');
     const formData = new FormData();
     formData.append('file', file);
 
     try {
       setIsUploading(true);
-      setProcessingMessage('Removing background and flipping image...');
 
       const headers = await getAuthHeader();
       const res = await fetch('/api/images', {
@@ -119,7 +116,6 @@ export default function HomePage() {
         throw new Error(payload?.error || 'Upload failed');
       }
 
-      setProcessingMessage('');
       toast.success('Image processed successfully');
       setFile(null);
 
@@ -132,7 +128,6 @@ export default function HomePage() {
       toast.error(message);
     } finally {
       setIsUploading(false);
-      setProcessingMessage('');
     }
   }
 
