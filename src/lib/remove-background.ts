@@ -5,9 +5,10 @@ export async function removeBackground(inputBuffer: Buffer): Promise<Buffer> {
     }
   
     const formData = new FormData();
+    const bytes = new Uint8Array(inputBuffer);
     formData.append(
       'image_file',
-      new Blob([inputBuffer], { type: 'application/octet-stream' }),
+      new Blob([bytes], { type: 'application/octet-stream' }),
       'upload.png'
     );
     formData.append('size', 'auto');
