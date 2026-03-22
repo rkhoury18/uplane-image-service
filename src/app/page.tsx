@@ -37,6 +37,8 @@ export default function HomePage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   useEffect(() => {
     supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
@@ -135,6 +137,30 @@ export default function HomePage() {
     setCopiedId(id);
     toast.success('URL copied to clipboard');
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function handleRename(id: string) {
+    const trimmed = editingName.trim();
+    setEditingId(null);
+    if (!trimmed) return;
+
+    const original = images.find((img) => img.id === id)?.original_filename;
+    if (trimmed === original) return;
+
+    try {
+      const headers = await getAuthHeader();
+      const res = await fetch(`/api/images/${id}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: trimmed }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.success) throw new Error(payload?.error || 'Rename failed');
+      setImages((prev) => prev.map((img) => img.id === id ? { ...img, original_filename: trimmed } : img));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Rename failed';
+      toast.error(message);
+    }
   }
 
   async function handleDelete(id: string) {
@@ -407,7 +433,27 @@ export default function HomePage() {
                   {/* Card body */}
                   <div className="p-4 space-y-3 border-t border-slate-100">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-slate-900 truncate min-w-0">{img.original_filename}</p>
+                      {editingId === img.id ? (
+                        <input
+                          autoFocus
+                          className="text-sm font-medium text-slate-900 truncate min-w-0 w-full bg-transparent border-b border-blue-400 outline-none"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onBlur={() => handleRename(img.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleRename(img.id);
+                            if (e.key === 'Escape') setEditingId(null);
+                          }}
+                        />
+                      ) : (
+                        <p
+                          className="text-sm font-medium text-slate-900 truncate min-w-0 cursor-pointer hover:text-blue-600"
+                          onClick={() => { setEditingId(img.id); setEditingName(img.original_filename); }}
+                          title="Click to rename"
+                        >
+                          {img.original_filename}
+                        </p>
+                      )}
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${
                         img.status === 'ready'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'

@@ -5,6 +5,35 @@ import { ok, fail } from '@/lib/api';
 
 export const runtime = 'nodejs';
 
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const { user, error: authError } = await getAuthenticatedUser(request);
+  if (authError || !user) return fail('Unauthorized', 401);
+
+  const { filename } = await request.json();
+  if (!filename || typeof filename !== 'string' || !filename.trim()) {
+    return fail('Invalid filename', 400);
+  }
+
+  const { data: updated, error } = await supabaseAdmin
+    .from('images')
+    .update({ original_filename: filename.trim() })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select('*')
+    .single();
+
+  if (error || !updated) {
+    return fail('Failed to update image', 500);
+  }
+
+  return ok(updated);
+}
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

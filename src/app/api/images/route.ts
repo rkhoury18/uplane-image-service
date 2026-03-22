@@ -40,68 +40,68 @@ export async function POST(request: Request) {
         const file = formData.get('file');
 
         if (!(file instanceof File)) {
-        return fail('File is required', 400);
+            return fail('File is required', 400);
         }
 
         if (!allowedMimeTypes.includes(file.type)) {
-        return fail('Unsupported file type', 400);
+            return fail('Unsupported file type', 400);
         }
 
         if (file.size > MAX_FILE_SIZE) {
-        return fail('File too large (max 10MB)', 400);
+            return fail('File too large (max 10MB)', 400);
         }
 
         const { data: createdRow, error: createError } = await supabaseAdmin
-        .from('images')
-        .insert({
-            user_id: user.id,
-            original_filename: file.name,
-            status: 'processing',
-        })
-        .select('*')
-        .single();
-
-        if (createError || !createdRow) {
-        console.error('Create image row failed:', createError);
-        return fail('Failed to create image record', 500);
-        }
-
-        try {
-        const inputBuffer = Buffer.from(await file.arrayBuffer());
-        const processedBuffer = await processImage(inputBuffer);
-        const { storagePath, publicUrl } = await uploadProcessedImage(processedBuffer);
-
-        const { data: updated, error: updateError } = await supabaseAdmin
             .from('images')
-            .update({
-            status: 'ready',
-            processed_url: publicUrl,
-            storage_path: storagePath,
+            .insert({
+                user_id: user.id,
+                original_filename: file.name,
+                status: 'processing',
             })
-            .eq('id', createdRow.id)
-            .eq('user_id', user.id)
             .select('*')
             .single();
 
-        if (updateError || !updated) {
-            console.error('Finalize image row failed:', updateError);
-            return fail('Failed to finalize image record', 500);
+        if (createError || !createdRow) {
+            console.error('Create image row failed:', createError);
+            return fail('Failed to create image record', 500);
         }
 
-        return ok(updated, 201);
+        try {
+            const inputBuffer = Buffer.from(await file.arrayBuffer());
+            const processedBuffer = await processImage(inputBuffer);
+            const { storagePath, publicUrl } = await uploadProcessedImage(processedBuffer);
+
+            const { data: updated, error: updateError } = await supabaseAdmin
+                .from('images')
+                .update({
+                    status: 'ready',
+                    processed_url: publicUrl,
+                    storage_path: storagePath,
+                })
+                .eq('id', createdRow.id)
+                .eq('user_id', user.id)
+                .select('*')
+                .single();
+
+            if (updateError || !updated) {
+                console.error('Finalize image row failed:', updateError);
+                return fail('Failed to finalize image record', 500);
+            }
+
+            return ok(updated, 201);
         } catch (pipelineError) {
-        const message =
-            pipelineError instanceof Error ? pipelineError.message : 'Image processing failed';
+            const message =
+                pipelineError instanceof Error ? pipelineError.message : 'Image processing failed';
 
-        console.error('Image pipeline failed:', message);
+            console.error('Image pipeline failed:', message);
 
-        await supabaseAdmin
-            .from('images')
-            .delete()
-            .eq('id', createdRow.id)
-            .eq('user_id', user.id);
+            await supabaseAdmin
+                .from('images')
+                .delete()
+                .eq('id', createdRow.id)
+                .eq('user_id', user.id);
 
-        return fail(message, 422);
+            return fail(message, 422);
         }
     } catch (err) {
         console.error('Invalid request in POST /api/images:', err);
