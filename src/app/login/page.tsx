@@ -131,8 +131,7 @@ export default function LoginPage() {
             </div>
 
             <p className="text-lg text-slate-600 max-w-md">
-              Upload your image and we'll remove the background and flip it horizontally.
-              Your images are saved to your account so you can come back to them anytime — share via URL or delete when you're done.
+                Upload an image, we'll remove the background and flip it. Your results are saved to your account so you can share or delete them whenever you like.
             </p>
 
             <ul className="space-y-4">
