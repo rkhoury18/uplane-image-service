@@ -13,6 +13,7 @@ A full-stack image processing application that removes backgrounds from uploaded
 - Automatic horizontal flip after background removal
 - Processed images hosted in Supabase Storage with unique public URLs
 - Copy-to-clipboard URL sharing
+- Rename images by clicking the filename
 - Delete images (removes from storage and database)
 - User authentication (sign up, log in, forgot password, email confirmation)
 - Drag-and-drop upload with real-time processing feedback
@@ -37,6 +38,10 @@ POST /api/images
   → sharp().flop() — horizontal flip
   → uploadProcessedImage() — stores PNG in Supabase Storage
   → update DB record (status: ready, processed_url)
+
+PATCH /api/images/:id
+  → verify ownership
+  → update original_filename in DB
 
 DELETE /api/images/:id
   → verify ownership
