@@ -4,7 +4,7 @@ A full-stack image processing application that removes backgrounds from uploaded
 
 **Live demo:** https://uplane-image-service-vercell.vercel.app
 
-> **Note:** The live demo runs on free tiers. remove.bg has a limited number of free credits — if they run out, image processing will return an error. Supabase's free tier has a cap on auth emails, so if you see an email rate limit error when signing up or resetting a password, let me know and I'll sort it.
+> **Note:** The live demo runs on free tiers. remove.bg has a limited number of free credits — if they run out, image processing will return an error. Supabase's free tier is capped at 2 auth emails per hour, so if you see an email rate limit error when signing up or resetting a password, let me know and I'll sort it or provide a test account.
 
 ## Features
 
