@@ -14,9 +14,15 @@ export async function PATCH(
   const { user, error: authError } = await getAuthenticatedUser(request);
   if (authError || !user) return fail('Unauthorized', 401);
 
-  const { filename } = await request.json();
+  let filename: unknown;
+  try {
+    ({ filename } = await request.json());
+  } catch {
+    return fail('Invalid request body', 400);
+  }
+
   if (!filename || typeof filename !== 'string' || !filename.trim()) {
-    return fail('Invalid filename', 400);
+    return fail('Image name cannot be empty', 400);
   }
 
   const { data: updated, error } = await supabaseAdmin

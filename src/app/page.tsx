@@ -157,6 +157,7 @@ export default function HomePage() {
       const payload = await res.json().catch(() => ({}));
       if (!res.ok || !payload?.success) throw new Error(payload?.error || 'Rename failed');
       setImages((prev) => prev.map((img) => img.id === id ? { ...img, original_filename: trimmed } : img));
+      toast.success('Image name updated');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Rename failed';
       toast.error(message);
