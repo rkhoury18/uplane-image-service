@@ -136,7 +136,6 @@ export default function SignupPage() {
                 </CardContent>
               </Card>
             ) : (
-              <>
                 <Card className="border border-slate-200 bg-white shadow-lg rounded-2xl">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold text-slate-900">Create Account</CardTitle>
@@ -207,7 +206,6 @@ export default function SignupPage() {
                   </CardContent>
                 </Card>
 
-              </>
             )}
           </section>
         </div>

@@ -19,7 +19,7 @@ ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
 
 create index if not exists images_user_id_idx on public.images(user_id);
 
--- Row Level Security
+-- I added some policies for row level security (since I added authentication)
 alter table public.images enable row level security;
 
 create policy "Users can view their own images"

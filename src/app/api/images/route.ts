@@ -77,7 +77,6 @@ export async function POST(request: Request) {
             status: 'ready',
             processed_url: publicUrl,
             storage_path: storagePath,
-            error_message: null,
             })
             .eq('id', createdRow.id)
             .eq('user_id', user.id)
